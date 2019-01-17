@@ -1,11 +1,10 @@
 from django.shortcuts import render
-from rest_framework import serializers
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework import serializers, permissions
+import rest_framework.generics as generics
 from .models import Pickle, PickleType
 
 
-class PickleTypeSerializer(serializers.ModelSerializer):
+class PickleTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PickleType
         fields = ("name",)
@@ -13,14 +12,17 @@ class PickleTypeSerializer(serializers.ModelSerializer):
 
 class PickleSerializer(serializers.HyperlinkedModelSerializer):
     pickle_type = PickleTypeSerializer()
-
     class Meta:
         model = Pickle
         fields = ("pickle_type", "size", "price")
 
 
 # Create your views here.
-@api_view()
-def pickles(request):
+class PickleList(generics.ListAPIView):
     queryset = Pickle.objects.all()
-    return Response(PickleSerializer(queryset))
+    serializer_class = PickleSerializer
+
+
+class PickleDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Pickle.objects.all()
+    serializer_class = PickleSerializer
